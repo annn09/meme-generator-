@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Meme Generator</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+    input, button, select {
+      padding: 10px;
+      font-size: 16px;
+      margin: 8px;
+      border-radius: 5px;
+    }
+    canvas {
+      margin-top: 20px;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎭 Prompt-Based Meme Generator</h1>
+
+  <textarea id="promptInput" placeholder="Type any funny or awkward situation..." rows="2" cols="50"></textarea><br>
+
+  <label>Style: </label>
+  <select id="styleToggle">
+    <option value="indian">Indian</option>
+    <option value="western">Western</option>
+  </select>
+
+  <input type="file" id="imageUpload" accept="image/*">
+  <button onclick="generateMeme()">Generate Meme</button>
+  <button onclick="downloadMeme()">Download Meme</button>
+
+  <br>
+  <canvas id="memeCanvas" width="500" height="500"></canvas>
+
+  <script>
+    const memeTemplates = {
+      indian: [
+        "https://i.imgur.com/NQnn03s.jpg",
+        "https://i.imgur.com/2qUpKx2.jpg",
+        "https://i.imgur.com/9X1a4mO.jpg",
+        "https://i.imgur.com/jzWWMA6.jpg"
+      ],
+      western: [
+        "https://i.imgur.com/Yo7RcnT.jpg",
+        "https://i.imgur.com/e2gZ2pd.jpg",
+        "https://i.imgur.com/TkA0GHj.jpg",
+        "https://i.imgur.com/GImB8vt.jpg"
+      ]
+    };
+
+    const canvas = document.getElementById("memeCanvas");
+    const ctx = canvas.getContext("2d");
+    let uploadedImage = null;
+
+    function generateText(prompt) {
+      prompt = prompt.toLowerCase();
+      if (prompt.includes("crush") || prompt.includes("love")) {
+        return {
+          top: "Told her I like her...",
+          bottom: "She said 'Awww bestie!' 💔"
+        };
+      } else if (prompt.includes("exam") || prompt.includes("study")) {
+        return {
+          top: "1 night before exam",
+          bottom: "Brain said: Format not supported 📚"
+        };
+      } else if (prompt.includes("wifi") || prompt.includes("internet")) {
+        return {
+          top: "Wi-Fi down for 5 mins",
+          bottom: "Inner peace: disconnected 🧘"
+        };
+      } else if (prompt.includes("parents") || prompt.includes("result")) {
+        return {
+          top: "Result out:",
+          bottom: "Mom: Beta this isn’t you, right? 😤"
+        };
+      } else {
+        return {
+          top: "POV:",
+          bottom: prompt.slice(0, 50) + (prompt.length > 50 ? "..." : "")
+        };
+      }
+    }
+
+    async function generateMeme() {
+      const prompt = document.getElementById("promptInput").value;
+      const style = document.getElementById("styleToggle").value;
+      const { top, bottom } = generateText(prompt);
+
+      let img = new Image();
+      const uploadInput = document.getElementById("imageUpload");
+
+      if (uploadInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          img.src = e.target.result;
+          drawMeme(img, top, bottom);
+        };
+        reader.readAsDataURL(uploadInput.files[0]);
+        return;
+      }
+
+      const templateList = memeTemplates[style];
+      const randomUrl = templateList[Math.floor(Math.random() * templateList.length)];
+      img.crossOrigin = "anonymous";
+      img.src = randomUrl;
+      img.onload = () => drawMeme(img, top, bottom);
+    }
+
+    function drawMeme(img, top, bottom) {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 4;
+      ctx.font = `${canvas.width * 0.06}px Impact`;
+      ctx.textAlign = "center";
+
+      // Draw top
+      ctx.strokeText(top.toUpperCase(), canvas.width / 2, 40);
+      ctx.fillText(top.toUpperCase(), canvas.width / 2, 40);
+
+      // Draw bottom
+      ctx.strokeText(bottom.toUpperCase(), canvas.width / 2, canvas.height - 20);
+      ctx.fillText(bottom.toUpperCase(), canvas.width / 2, canvas.height - 20);
+    }
+
+    function downloadMeme() {
+      const link = document.createElement("a");
+      link.download = "meme.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
